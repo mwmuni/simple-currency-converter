@@ -54,3 +54,38 @@ currency-convert --list-crypto
 # List all supported currencies
 currency-convert --list-all
 ```
+
+## Development
+
+### Running tests
+
+The project includes a comprehensive test suite using pytest. To run the tests:
+
+1. Clone the repository
+2. Install the package in development mode:
+
+```bash
+# Install package in development mode
+pip install -e .
+
+# Install test dependencies
+pip install pytest pytest-cov
+```
+
+3. Run the tests:
+
+```bash
+# Run all tests
+pytest
+
+# Run tests with coverage report
+pytest --cov=simple_currency_converter
+```
+
+### GitHub Actions
+
+This project uses GitHub Actions for continuous integration. Tests are automatically run on push and pull requests to the main branch, across multiple Python versions.
+
+## License
+
+MIT
