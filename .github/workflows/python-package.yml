@@ -8,20 +8,63 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  release:
+    types: [created]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
-    - name: astral-sh/setup-uv
-      # You may pin to the exact commit or the version.
-      # uses: astral-sh/setup-uv@f94ec6bedd8674c4426838e6b50417d36b6ab231
+    - name: Set up UV
       uses: astral-sh/setup-uv@v5.3.1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'uv'
+    - name: Install dependencies
+      run: |
+        uv pip install .[dev,test]
+    - name: Lint with ruff
+      run: |
+        uv pip install ruff
+        ruff check .
+    - name: Type check with mypy
+      run: |
+        uv pip install mypy
+        mypy .
+    - name: Test with pytest
+      run: |
+        uv pip install pytest pytest-cov
+        pytest --cov=simple_currency_converter
+
+  publish:
+    needs: build
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # For trusted publishing to PyPI
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.13"
+    - name: Set up UV
+      uses: astral-sh/setup-uv@v5.3.1
+    - name: Build package
+      run: |
+        uv build
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_TOKEN }}
+        repository-url: https://upload.pypi.org/legacy/
               
